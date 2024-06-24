@@ -1,15 +1,14 @@
 import './App.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ButtonComponent from './widget-component/button';
 import InputBox from './widget-component/inputBox';
 import TextBox from './widget-component/textBox';
 import { useSelector,useDispatch } from 'react-redux'
 import { removeInputList, setInputList } from './store/inputSlice';
-import { setListValue } from './store/listValueSlice';
+import { editListValue, removeListValue, setListValue } from './store/listValueSlice';
 import { setShowText } from './store/showTextList';
 
 function App() {
-  let enteredValue;
   //Redux usage
   //To create new empty list dynamically
   const inputSelector = useSelector((val) => val.inputList.value)
@@ -25,64 +24,76 @@ function App() {
   // const [listValue ,setlistValue] = useState([""])
   // const [showText ,setShowText] = useState([false])
   const [showAdd, setShowAdd] = useState(false)
+  const [currentItem, setCurrentItem] = useState()
+  const [isEditing, setEditing] = useState(false)
+  const [currentItemIndex,setCurrentItemIndex] = useState(null)
+  const [action, setAction] = useState("Add")
 
   const addNewList = () => {
-    dispatch(setInputList({}))
-    dispatch(setListValue(enteredValue))
-    enteredValue = '';
-    const sText = [...showText]
-    sText.push(false);
-    dispatch(setShowText(sText))
-    setShowAdd(false);
+    if(isEditing) {
+      setEditing(false)
+      const temp = [...listValue]
+      temp[currentItemIndex] = currentItem
+      dispatch(editListValue(temp))
+      setAction("Add")
+      const sText = [...showText]
+      sText[currentItemIndex] = false;
+      dispatch(setShowText(sText))
+    }
+    else {
+        dispatch(setInputList({}))
+        dispatch(setListValue(currentItem))
+        const sText = [...showText]
+        sText.push(false);
+        dispatch(setShowText(sText))
+        setShowAdd(false);  
+    }
+    setCurrentItem('');
   }
 
   const removeList = (i) => {
     const temp = [...inputSelector]
     temp.splice(i,1)
     dispatch(removeInputList(inputSelector,i))
-    const remp = [...listValue]
-    remp.splice(i,1);
-    dispatch(setListValue(remp))
+    dispatch(removeListValue(i))
 
     const sText = [...showText]
     sText.splice(i,1)
     dispatch(setShowText(sText))
   }
 
-  const showTextList = (i) => {
-    setShowAdd(true);
-    const temp = [...showText]
-    temp[i] = true;
-    dispatch(setShowText(temp))
-  }
+  // const showTextList = (i) => {
+  //   setShowAdd(true);
+  //   const temp = [...showText]
+  //   temp[i] = true;
+  //   dispatch(setShowText(temp))
+  // }
 
   const changedValue = (e) => {
-    enteredValue = e?.target?.value
+    setCurrentItem (e?.target?.value);
+  }
+
+  const editList = (i) => {
+    setAction("Update")
+    setCurrentItem(listValue[i])
+    setEditing(true)
+    setCurrentItemIndex(i)
+    const sText = [...showText]
+    sText[i] = true;
+    dispatch(setShowText(sText))
   }
 
   return (
     <>
     <div className="App">
       <h1>Check List</h1>
-      <div>
-      <InputBox changedValue = {changedValue} enteredValue={enteredValue}></InputBox>     
-      <ButtonComponent addNewList ={addNewList}/>
-      </div>
-
-
+      <InputBox changedValue = {changedValue}  enteredValue ={currentItem}></InputBox>
+      <ButtonComponent addNewList ={addNewList} action ={action}/>
       {inputSelector.map((e,i) => {
        return <div>
-        <div>
-        <TextBox listValue = {listValue} index ={i}></TextBox>
+        <TextBox listValue =  {listValue} index ={i}></TextBox>
         <button onClick={() => removeList(i)}>Remove</button>
-        </div>
-        {/* { !showText[i] ? 
-        <InputBox changedValue = {changedValue} index ={i}></InputBox>
-        :
-        <TextBox listValue = {listValue} index ={i}></TextBox>
-      } */}
-
-       {/* {showText[i] ? <button onClick={() => removeList(i)}>Remove</button> : <button onClick={() => showTextList(i)}>OK</button>} */}
+        <button disabled={showText[i]} onClick={() => editList(i)}>Edit</button>
        </div>
       })}
     </div>
