@@ -9,6 +9,7 @@ import { setListValue } from './store/listValueSlice';
 import { setShowText } from './store/showTextList';
 
 function App() {
+  let enteredValue;
   //Redux usage
   //To create new empty list dynamically
   const inputSelector = useSelector((val) => val.inputList.value)
@@ -26,7 +27,9 @@ function App() {
   const [showAdd, setShowAdd] = useState(false)
 
   const addNewList = () => {
-    dispatch(setInputList(inputSelector))
+    dispatch(setInputList({}))
+    dispatch(setListValue(enteredValue))
+    enteredValue = '';
     const sText = [...showText]
     sText.push(false);
     dispatch(setShowText(sText))
@@ -53,27 +56,33 @@ function App() {
     dispatch(setShowText(temp))
   }
 
-  const changedValue = (e,i) => {
-    const temp = [...listValue]
-    temp[i] = e?.target?.value
-    dispatch(setListValue(temp))
+  const changedValue = (e) => {
+    enteredValue = e?.target?.value
   }
 
   return (
     <>
     <div className="App">
       <h1>Check List</h1>
-      <ButtonComponent showAdd ={showAdd} addNewList ={addNewList}/>
+      <div>
+      <InputBox changedValue = {changedValue} enteredValue={enteredValue}></InputBox>     
+      <ButtonComponent addNewList ={addNewList}/>
+      </div>
+
+
       {inputSelector.map((e,i) => {
        return <div>
-        { !showText[i] ? 
+        <div>
+        <TextBox listValue = {listValue} index ={i}></TextBox>
+        <button onClick={() => removeList(i)}>Remove</button>
+        </div>
+        {/* { !showText[i] ? 
         <InputBox changedValue = {changedValue} index ={i}></InputBox>
         :
         <TextBox listValue = {listValue} index ={i}></TextBox>
-      }
-       
-       {showText[i] ? 
-       <button onClick={() => removeList(i)}>Remove</button> : <button onClick={() => showTextList(i)}>OK</button>}
+      } */}
+
+       {/* {showText[i] ? <button onClick={() => removeList(i)}>Remove</button> : <button onClick={() => showTextList(i)}>OK</button>} */}
        </div>
       })}
     </div>

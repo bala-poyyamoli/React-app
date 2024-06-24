@@ -2,7 +2,7 @@ import React from 'react';
 
 function ButtonComponent(props) {
     return ( <>
-    <button disabled = {!props.showAdd } onClick={props.addNewList} >Add</button>
+    <button onClick={props.addNewList} >Add</button>
      </>)
 }
 
